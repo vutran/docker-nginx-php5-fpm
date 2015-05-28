@@ -62,6 +62,9 @@ VOLUME ["/etc/nginx/certs", "/etc/nginx/conf.d", "/var/www/html"]
 # Boot up Nginx, and PHP5-FPM when container is started
 CMD service php5-fpm start && nginx
 
+# Set the current working directory
+WORKDIR /var/www/html
+
 # Expose port 80
 EXPOSE 80
 EXPOSE 443
