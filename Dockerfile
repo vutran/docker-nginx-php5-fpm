@@ -21,14 +21,10 @@ RUN apt-get update && apt-get -y install \
     git
 
 # Download Nginx signing key
-RUN wget http://nginx.org/keys/nginx_signing.key
-
-# Add the Nginx signing key to the keyring
-RUN apt-key add nginx_signing.key
+RUN apt-key adv --recv-keys --keyserver keyserver.ubuntu.com C300EE8C
 
 # Add to repository sources list
-RUN echo 'deb http://nginx.org/packages/ubuntu/ trusty nginx' >> /etc/apt/sources.list
-RUN echo 'deb-src http://nginx.org/packages/ubuntu/ trusty nginx' >> /etc/apt/sources.list
+RUN add-apt-repository ppa:nginx/stable
 
 # Update cache and install Nginx
 RUN apt-get update && apt-get -y install \
@@ -45,24 +41,19 @@ RUN apt-get update && apt-get -y install \
 # Reference: http://stackoverflow.com/questions/18861300/how-to-run-nginx-within-docker-container-without-halting
 RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
 
-# Backup the php.ini file
+# Backup the default configurations
 RUN cp /etc/php5/fpm/php.ini /etc/php5/fpm/php.ini.original.bak
+RUN mv /etc/nginx/sites-available/default /etc/nginx/sites-available/default.original
 
 # Configure PHP settings
 RUN perl -pi -e 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php5/fpm/php.ini
 RUN perl -pi -e 's/allow_url_fopen = Off/allow_url_fopen = On/g' /etc/php5/fpm/php.ini
 RUN perl -pi -e 's/expose_php = On/expose_php = Off/g' /etc/php5/fpm/php.ini
-RUN perl -pi -e 's/listen.owner = www-data/listen.owner = nginx/g' /etc/php5/fpm/pool.d/www.conf
-RUN perl -pi -e 's/listen.group = www-data/listen.group = nginx/g' /etc/php5/fpm/pool.d/www.conf
 
-# Make directories
-RUN mkdir -p /var/www/html
-RUN chown -R www-data:www-data /var/www/html
+# Copy default site conf
+COPY default.conf /etc/nginx/sites-available/default
 
-# Copy files
-COPY default.conf /etc/nginx/conf.d/default.conf
-
-# Copy website directory
+# Copy the index.php file
 COPY index.php /var/www/html/index.php
 
 # Mount volumes
