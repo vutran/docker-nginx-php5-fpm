@@ -47,4 +47,4 @@ For more information, please see the [Docker Compose documentation](http://docs.
 	web:
 	    build: .
 	    volumes:
-	        .:/var/www/html
+	     - .:/var/www/html
